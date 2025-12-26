@@ -101,10 +101,12 @@ This project is licensed under the BSD-3-Clause-Clear License. See the [LICENSE]
 
 ## 🆘 Support
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/zama-ai/fhevm/issues)
+- **FHEVM Issues**: [Zama FHEVM GitHub](https://github.com/zama-ai/fhevm/issues)
 - **Documentation**: [FHEVM Docs](https://docs.zama.ai)
 - **Community**: [Zama Discord](https://discord.gg/zama)
 
----
+## 👤 Author
 
-**Built with ❤️ by the Zama team**
+**legend2303**
+
+Built using [Zama FHEVM](https://docs.zama.ai/fhevm) - Fully Homomorphic Encryption on Ethereum
