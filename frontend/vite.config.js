@@ -31,13 +31,18 @@ export default defineConfig({
       "process",
       "util",
       "events",
-      "keccak",
-      "keccak",
-      "keccak",
     ],
     exclude: [
+      "keccak",
       "@zama-fhe/relayer-sdk",
     ],
+
+    // 🔥 Force CJS → ESM conversion
+    esbuildOptions: {
+      define: {
+        global: "globalThis",
+      },
+    },
   },
 
   assetsInclude: ["**/*.wasm"],
