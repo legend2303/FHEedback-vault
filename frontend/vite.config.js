@@ -31,6 +31,9 @@ export default defineConfig({
       "process",
       "util",
       "events",
+      "keccak",
+      "keccak",
+      "keccak",
     ],
     exclude: [
       "@zama-fhe/relayer-sdk",
