@@ -1,0 +1,246 @@
+/* ================= RESPONSIVE DESIGN ================= */
+
+/* Mobile First Approach */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ========== Tablet & Desktop (768px+) ========== */
+@media (min-width: 768px) {
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+/* ========== Pagination Responsive ========== */
+.pagination-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.pagination-button {
+  min-width: auto;
+}
+
+@media (max-width: 480px) {
+  .pagination-button {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .pagination-text {
+    font-size: 11px;
+    padding: 8px 12px !important;
+  }
+}
+
+@media (min-width: 481px) {
+  .pagination-button {
+    padding: 10px 16px !important;
+  }
+
+  .pagination-text {
+    padding: 10px 16px;
+  }
+}
+
+/* ========== Question Card Responsive ========== */
+.question-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .question-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+/* ========== Slider Responsive ========== */
+input[type="range"] {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ========== Text Wrapping ========== */
+.question-title {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.address-text {
+  word-break: break-all;
+}
+
+@media (min-width: 640px) {
+  .address-text {
+    word-break: normal;
+  }
+}
+
+/* ========== Button Responsive ========== */
+button {
+  min-height: 40px;
+  min-width: 80px;
+}
+
+@media (max-width: 480px) {
+  button {
+    font-size: 13px;
+    padding: 8px 12px !important;
+  }
+
+  textarea {
+    font-size: 14px;
+  }
+
+  input[type="text"],
+  input[type="range"] {
+    font-size: 14px;
+  }
+}
+
+/* ========== Header Responsive ========== */
+.app-header {
+  word-break: break-word;
+}
+
+/* ========== Grid Responsive ========== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}
+
+/* ========== Wallet Button Responsive ========== */
+.wallet-button-container {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  width: calc(100% - 20px);
+  max-width: 350px;
+}
+
+@media (min-width: 768px) {
+  .wallet-button-container {
+    width: auto;
+    max-width: none;
+  }
+}
+
+/* ========== Container Padding ========== */
+.app-container {
+  min-height: 100vh;
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    padding: 40px;
+  }
+}
+
+/* ========== Meta Information Responsive ========== */
+.question-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+
+@media (min-width: 640px) {
+  .question-meta {
+    flex-direction: row;
+    gap: 12px;
+    font-size: 14px;
+  }
+}
+
+/* ========== Slider Value Display ========== */
+.slider-value {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 640px) {
+  .slider-value {
+    font-size: 14px;
+    gap: 8px;
+  }
+}
+
+/* ========== Badge Responsive ========== */
+.badge {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+@media (min-width: 768px) {
+  .badge {
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+}
+
+/* ========== Card Responsive ========== */
+.feedback-card {
+  padding: 12px;
+}
+
+@media (min-width: 768px) {
+  .feedback-card {
+    padding: 16px;
+  }
+}
+
+/* ========== Touch Friendly ========== */
+@media (max-width: 768px) {
+  button,
+  input[type="range"],
+  textarea,
+  input[type="text"] {
+    min-height: 44px;
+  }
+}
+
+/* ========== Orientation Responsive ========== */
+@media (orientation: landscape) and (max-height: 500px) {
+  .app-container {
+    padding: 10px;
+  }
+
+  .card {
+    margin-bottom: 12px;
+  }
+}

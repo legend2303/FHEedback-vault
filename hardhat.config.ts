@@ -38,6 +38,7 @@ const config: HardhatUserConfig = {
         mnemonic: MNEMONIC,
       },
       chainId: 31337,
+      blockGasLimit: 40_000_000, // 🔥 REQUIRED for FHEVM
     },
     anvil: {
       accounts: {
@@ -47,15 +48,12 @@ const config: HardhatUserConfig = {
       },
       chainId: 31337,
       url: "http://localhost:8545",
+      blockGasLimit: 40_000_000, // (optional, but safe)
     },
     sepolia: {
-      accounts: {
-        mnemonic: MNEMONIC,
-        path: "m/44'/60'/0'/0/",
-        count: 10,
-      },
+      url: "https://eth-sepolia.g.alchemy.com/v2/5XldVmdd6OZqqTfjv_xo8jlMdmieKkfH",
+      accounts: [vars.get("PRIVATE_KEY")],
       chainId: 11155111,
-      url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
     },
   },
   paths: {
@@ -68,12 +66,8 @@ const config: HardhatUserConfig = {
     version: "0.8.27",
     settings: {
       metadata: {
-        // Not including the metadata hash
-        // https://github.com/paulrberg/hardhat-template/issues/31
         bytecodeHash: "none",
       },
-      // Disable the optimizer when debugging
-      // https://hardhat.org/hardhat-network/#solidity-optimizer-support
       optimizer: {
         enabled: true,
         runs: 800,

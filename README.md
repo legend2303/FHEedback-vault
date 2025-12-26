@@ -1,7 +1,7 @@
-# FHEVM Hardhat Template
+# FHEedback Vault
 
-A Hardhat-based template for developing Fully Homomorphic Encryption (FHE) enabled Solidity smart contracts using the
-FHEVM protocol by Zama.
+An FHE-encrypted, owner-curated on-chain feedback dApp built on the
+Zama FHEVM Hardhat stack.
 
 ## Quick Start
 
