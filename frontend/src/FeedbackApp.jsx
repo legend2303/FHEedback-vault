@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { BrowserProvider } from "ethers";
-import { initFHE } from "./fhe.js";
 
 export default function FeedbackApp() {
   const [instance, setInstance] = useState(null);
@@ -9,8 +7,19 @@ export default function FeedbackApp() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const initializeFHE = async () => {
+    let mounted = true;
+
+    async function initializeFHE() {
       try {
+        // Dynamic import that bypasses static scanning
+        const sdkModule = await import("@zama-fhe/relayer-sdk");
+        const { initSDK, createInstance, SepoliaConfig } = sdkModule;
+
+        // 🚨 REQUIRED
+        await initSDK();
+
+        if (!mounted) return;
+
         if (!window.ethereum) {
           setStatus("MetaMask not found");
           return;
@@ -22,20 +31,25 @@ export default function FeedbackApp() {
         });
         setAddress(accounts[0]);
 
-        // Initialize FHE
-        const provider = new BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        const fheInstance = await initFHE(signer);
+        const instance = await createInstance({
+          ...SepoliaConfig,
+          provider: window.ethereum,
+        });
 
-        setInstance(fheInstance);
+        setInstance(instance);
+        console.log("✅ FHE SDK initialized", instance);
         setStatus("✅ FHE Ready");
-      } catch (error) {
-        console.error("Init error:", error);
-        setStatus(`Error: ${error.message}`);
+      } catch (err) {
+        console.error("❌ FHE init failed:", err);
+        setStatus(`Error: ${err.message}`);
       }
-    };
+    }
 
     initializeFHE();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleSubmit = async () => {

@@ -1,17 +1,47 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 export default defineConfig({
-  plugins: [react()],
-  assetsInclude: ["**/*.wasm"],
+  plugins: [
+    react(),
+    nodePolyfills({
+      protocolImports: true,
+    }),
+  ],
+
+  define: {
+    global: "globalThis",
+    "process.env": {},
+  },
+
   resolve: {
-    conditions: ["browser"]
+    alias: {
+      buffer: "buffer",
+      util: "util",
+      events: "events",
+      process: "process/browser",
+    },
   },
+
   optimizeDeps: {
-    include: ["@zama-fhe/relayer-sdk/web"]
+    include: [
+      "buffer",
+      "process",
+      "util",
+      "events",
+    ],
+    exclude: [
+      "@zama-fhe/relayer-sdk",
+    ],
   },
-  build: {
-    target: "esnext"
+
+  assetsInclude: ["**/*.wasm"],
+
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
   },
-  css: false
 });
