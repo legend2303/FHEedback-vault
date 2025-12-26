@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ethers } from "ethers";
-import { createInstance, SepoliaConfig, initSDK } from "@zama-fhe/relayer-sdk";
+import * as fhevmjs from "fhevmjs";
 import ErrorBoundary from "./ErrorBoundary";
 import { PageSkeleton } from "./Skeletons";
 import "./FeedbackApp.css";
@@ -310,29 +310,32 @@ export default function FeedbackApp() {
     [contract, extractRpcError]
   );
 
-  /* ---------- Initialize FHE with Relayer SDK ---------- */
+  /* ---------- Initialize FHE with fhevmjs ---------- */
   useEffect(() => {
     if (!isConnected || !address) return;
 
     (async () => {
       try {
-        setStatus("⏳ Initializing FHE with Relayer SDK...");
-
-        // Initialize the SDK
-        await initSDK();
-
-        // Get provider and signer
+        setStatus("⏳ Initializing FHE...");
+        
+        await fhevmjs.initFhevm();
+        
         const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
+        
+        // Sepolia config
+        const chainId = SEPOLIA_CHAIN_ID;
+        const aclAddress = "0xf0Ffdc93b7E186bC2f8CB3dAA75D86d1930A433D";
+        const kmsVerifierAddress = "0xbE0E383937d564D7FF0BC3b46c51f0bF8d5C311A";
 
-        // Create FHE instance using Relayer SDK
-        const instance = await createInstance({
-          ...SepoliaConfig,
-          signer,
+        const instance = await fhevmjs.createInstance({
+          chainId,
+          aclAddress,
+          kmsVerifierAddress,
+          provider,
         });
 
         setFhevmInstance(instance);
-        setStatus("✅ FHE ready (Relayer SDK)");
+        setStatus("✅ FHE ready");
       } catch (err) {
         console.error("Failed to init FHE:", err);
         setStatus(`❌ FHE init failed: ${err.message}`);
@@ -562,9 +565,8 @@ export default function FeedbackApp() {
       
       if (fhevmInstance) {
         try {
-          // Use Relayer SDK's encrypt method
           const input = fhevmInstance.createEncryptedInput(CONTRACT_ADDRESS, address);
-          input.add32(score); // Encrypt the score as uint32
+          input.add32(score);
           const encrypted = await input.encrypt();
 
           const handle = encrypted?.handles?.[0];
