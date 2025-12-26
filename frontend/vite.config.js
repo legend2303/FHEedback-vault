@@ -21,6 +21,7 @@ export default defineConfig({
       util: "util",
       events: "events",
       process: "process/browser",
+      "@zama-fhe/relayer-sdk": "@zama-fhe/relayer-sdk/web",
     },
   },
 
