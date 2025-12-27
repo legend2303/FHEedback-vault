@@ -56,6 +56,12 @@ export default function FeedbackApp() {
     }
   }
 
+  function handleDisconnect() {
+    setWallet(null);
+    setLastTxHash(null);
+    setStatus({ type: 'info', message: 'Wallet disconnected.' });
+  }
+
   async function submit() {
     if (!wallet) {
       setStatus({ type: 'error', message: 'Please connect wallet first' });
@@ -145,6 +151,9 @@ export default function FeedbackApp() {
           <div className="wallet-info">
             <p>✅ <strong>Connected:</strong> {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}</p>
             <p><strong>Network:</strong> {networkName}</p>
+            <button onClick={handleDisconnect} className="btn-sm" style={{ marginLeft: 12 }}>
+              🛑 Disconnect
+            </button>
           </div>
         )}
       </div>
