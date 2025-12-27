@@ -6,7 +6,6 @@ Zama FHEVM Hardhat stack.
 ## 🚀 Live Demo
 
 - Website: https://fheedback-vault.netlify.app
-- Admin: https://app.netlify.com/projects/FHeedback-Vault
 
 Tip: Ensure MetaMask is connected to Sepolia to interact.
 

@@ -6,7 +6,6 @@ Built with React + Vite.
 ## 🚀 Live Demo
 
 - Website: https://fheedback-vault.netlify.app
-- Admin: https://app.netlify.com/projects/FHeedback-Vault
 
 Note: The app requires MetaMask on Sepolia to submit feedback.
 
