@@ -4,32 +4,63 @@ pragma solidity ^0.8.24;
 import { FHE, euint32, externalEuint32 } from "@fhevm/solidity/lib/FHE.sol";
 import { ZamaEthereumConfig } from "@fhevm/solidity/config/ZamaConfig.sol";
 
-contract FHECounter is ZamaEthereumConfig {
-    euint32 private _count;
+contract PrivateNotes is ZamaEthereumConfig {
+    mapping(address => euint32[]) private encryptedNotes;
+    mapping(address => uint256) public noteCount;
 
-    function increment(
-        externalEuint32 inputEuint32,
-        bytes calldata inputProof
+    event NoteStored(address indexed user, uint256 byteLength);
+    event NoteCleared(address indexed user);
+
+    /**
+     * @notice Store encrypted note chunks (4 bytes per chunk)
+     * @dev One proof PER chunk (required)
+     */
+    function setNote(
+        externalEuint32[] calldata encryptedChunks,
+        bytes[] calldata proofs
     ) external {
-        euint32 encrypted = FHE.fromExternal(inputEuint32, inputProof);
-        require(FHE.isSenderAllowed(encrypted));
+        uint256 len = encryptedChunks.length;
+        require(len > 0, "Empty note");
+        require(len <= 256, "Note too long");
+        require(len == proofs.length, "Chunks/proofs mismatch");
 
-        _count = FHE.add(_count, encrypted);
+        delete encryptedNotes[msg.sender];
 
-        FHE.allow(_count, address(this));
-        FHE.allow(_count, msg.sender);
+        for (uint256 i = 0; i < len; i++) {
+            euint32 chunk = FHE.fromExternal(encryptedChunks[i], proofs[i]);
+
+            FHE.allow(chunk, msg.sender);
+            FHE.allowThis(chunk);
+
+            encryptedNotes[msg.sender].push(chunk);
+        }
+
+        noteCount[msg.sender] = len;
+        emit NoteStored(msg.sender, len * 4);
     }
 
-    function decrement(
-        externalEuint32 inputEuint32,
-        bytes calldata inputProof
-    ) external {
-        euint32 encrypted = FHE.fromExternal(inputEuint32, inputProof);
-        require(FHE.isSenderAllowed(encrypted));
+    /**
+     * @notice Return encrypted chunk handle (for frontend decryption)
+     */
+    function getNoteChunk(uint256 index) external view returns (euint32) {
+        require(index < encryptedNotes[msg.sender].length, "Out of bounds");
+        return encryptedNotes[msg.sender][index];
+    }
 
-        _count = FHE.sub(_count, encrypted);
+    function getNoteChunkCount() external view returns (uint256) {
+        return encryptedNotes[msg.sender].length;
+    }
 
-        FHE.allow(_count, address(this));
-        FHE.allow(_count, msg.sender);
+    function allowRead(address reader) external {
+        euint32[] storage chunks = encryptedNotes[msg.sender];
+        for (uint256 i = 0; i < chunks.length; i++) {
+            FHE.allow(chunks[i], reader);
+        }
+    }
+
+    function clearNote() external {
+        delete encryptedNotes[msg.sender];
+        noteCount[msg.sender] = 0;
+        emit NoteCleared(msg.sender);
     }
 }

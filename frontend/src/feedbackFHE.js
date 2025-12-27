@@ -5,7 +5,12 @@ import EncryptedFeedbackDeployment from "../../deployments/sepolia/EncryptedFeed
 const CONTRACT_ADDRESS = EncryptedFeedbackDeployment.address;
 const ABI = EncryptedFeedbackDeployment.abi;
 
-export async function submitEncryptedFeedback(questionId, score, signer, address) {
+export async function submitEncryptedFeedback(
+  questionId,
+  score,
+  signer,
+  address
+) {
   if (!signer || !address) {
     throw new Error("Wallet not connected");
   }
@@ -16,23 +21,29 @@ export async function submitEncryptedFeedback(questionId, score, signer, address
 
   const fhevm = await getFHE();
 
-  const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+  const contract = new ethers.Contract(
+    CONTRACT_ADDRESS,
+    ABI,
+    signer
+  );
 
-  // createEncryptedInput is a METHOD on the instance
-  const input = fhevm.createEncryptedInput(CONTRACT_ADDRESS, address);
-  input.add(Number(score));
-
-  const encrypted = await input.encrypt();
+  // ✅ CORRECT for browser SDK 0.3.0-8
+  const encrypted = await fhevm.encrypt32(
+    Number(score),
+    CONTRACT_ADDRESS,
+    address
+  );
 
   const tx = await contract.submitFeedback(
     questionId,
-    encrypted.handles[0],
-    encrypted.inputProof
+    encrypted.handle,
+    encrypted.proof
   );
 
   await tx.wait();
   return tx.hash;
 }
+
 
 export async function createQuestion(text, signer) {
   const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
@@ -54,11 +65,27 @@ export async function decryptMyFeedback(questionId, signer, address) {
 
   const typedData = fhe.createEIP712(publicKey, [CONTRACT_ADDRESS], start, days);
 
-  const signature = await signer.signTypedData(
-    typedData.domain,
-    typedData.types,
-    typedData.message
-  );
+  let signature;
+  try {
+    signature = await signer.signTypedData(
+      typedData.domain,
+      typedData.types,
+      typedData.message
+    );
+  } catch {
+    signature = await window.ethereum.request({
+      method: "eth_signTypedData_v4",
+      params: [
+        address,
+        JSON.stringify({
+          domain: typedData.domain,
+          types: typedData.types,
+          primaryType: typedData.primaryType,
+          message: typedData.message,
+        }),
+      ],
+    });
+  }
 
   const result = await fhe.userDecrypt(
     [handleHex],
