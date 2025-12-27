@@ -1,0 +1,12 @@
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+# Ensure headers for COOP/COEP in production
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Embedder-Policy = "require-corp"
+    X-Content-Type-Options = "nosniff"
