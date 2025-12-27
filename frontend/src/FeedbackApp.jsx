@@ -64,6 +64,23 @@ export default function FeedbackApp() {
     setStatus({ type: 'info', message: 'Wallet disconnected.' });
   }
 
+  function handleError(err) {
+    const errorMessage = err.message || String(err);
+    const isUserRejection = 
+      err.code === 'ACTION_REJECTED' || 
+      err.code === 4001 || 
+      errorMessage.includes('user rejected') || 
+      errorMessage.includes('User denied') ||
+      errorMessage.includes('ethers-user-denied');
+    
+    if (isUserRejection) {
+      setStatus({ type: 'info', message: 'Transaction cancelled' });
+      setTimeout(() => setStatus(null), 3000); // Auto-clear after 3 seconds
+    } else {
+      setStatus({ type: 'error', message: errorMessage });
+    }
+  }
+
   async function submit() {
     if (!wallet) {
       setStatus({ type: 'error', message: 'Please connect wallet first' });
@@ -79,7 +96,7 @@ export default function FeedbackApp() {
       setStatus({ type: 'success', message: `Feedback submitted to question #${selectedQuestionId + 1}!` });
       setScore(50);
     } catch (err) {
-      setStatus({ type: 'error', message: err.message });
+      handleError(err);
     } finally {
       setSubmitting(false);
     }
@@ -104,7 +121,7 @@ export default function FeedbackApp() {
       setNewQuestionText("");
       await loadQuestions();
     } catch (err) {
-      setStatus({ type: 'error', message: err.message });
+      handleError(err);
     } finally {
       setCreatingQuestion(false);
     }
@@ -137,7 +154,7 @@ export default function FeedbackApp() {
       setStatus({ type: 'success', message: 'Question deactivated!' });
       await loadQuestions();
     } catch (err) {
-      setStatus({ type: 'error', message: err.message });
+      handleError(err);
     } finally {
       setDeactivatingId(null);
     }
