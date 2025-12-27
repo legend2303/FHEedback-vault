@@ -28,7 +28,7 @@ export async function submitEncryptedFeedback(
   );
 
   // Friendly pre-check to avoid revert when already submitted
-  const alreadySubmitted = await contract.hasSubmitted(questionId);
+  const alreadySubmitted = await contract.hasSubmitted(questionId, address);
   if (alreadySubmitted) {
     throw new Error("You already submitted feedback for this question.");
   }

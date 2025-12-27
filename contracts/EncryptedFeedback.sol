@@ -75,6 +75,10 @@ contract EncryptedFeedback is ZamaEthereumConfig {
         return questions[id];
     }
 
+    function hasSubmitted(uint256 questionId, address user) external view returns (bool) {
+        return feedbacks[questionId][user].submitted;
+    }
+
     function deactivateQuestion(uint256 questionId) external {
         require(questionId < questionCount, "Invalid question");
         require(questions[questionId].creator == msg.sender, "Only creator can deactivate");
