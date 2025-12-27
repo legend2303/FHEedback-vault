@@ -73,9 +73,14 @@ export default function FeedbackApp() {
       errorMessage.includes('User denied') ||
       errorMessage.includes('ethers-user-denied');
     
+    const isAlreadySubmitted = errorMessage.includes('already submitted');
+    
     if (isUserRejection) {
       setStatus({ type: 'info', message: 'Transaction cancelled' });
       setTimeout(() => setStatus(null), 3000); // Auto-clear after 3 seconds
+    } else if (isAlreadySubmitted) {
+      setStatus({ type: 'info', message: errorMessage });
+      setTimeout(() => setStatus(null), 4000); // Auto-clear after 4 seconds
     } else {
       setStatus({ type: 'error', message: errorMessage });
     }
