@@ -3,6 +3,13 @@
 An FHE-encrypted, owner-curated on-chain feedback dApp built on the
 Zama FHEVM Hardhat stack.
 
+## 🚀 Live Demo
+
+- Website: https://fheedback-vault.netlify.app
+- Admin: https://app.netlify.com/projects/FHeedback-Vault
+
+Tip: Ensure MetaMask is connected to Sepolia to interact.
+
 ## Quick Start
 
 For detailed instructions see:
@@ -110,3 +117,17 @@ This project is licensed under the BSD-3-Clause-Clear License. See the [LICENSE]
 **legend2303**
 
 Built using [Zama FHEVM](https://docs.zama.ai/fhevm) - Fully Homomorphic Encryption on Ethereum
+
+### Run the Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+To build for production:
+
+```bash
+npm run build
+```

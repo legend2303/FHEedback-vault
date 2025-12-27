@@ -1,7 +1,27 @@
 # FHEedback Vault (Frontend)
 
 Frontend for FHEedback Vault — an FHE-encrypted, owner-curated on-chain feedback dApp.
-Built with React + Vite and RainbowKit/Wagmi.
+Built with React + Vite.
+
+## 🚀 Live Demo
+
+- Website: https://fheedback-vault.netlify.app
+- Admin: https://app.netlify.com/projects/FHeedback-Vault
+
+Note: The app requires MetaMask on Sepolia to submit feedback.
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+## Production Build
+
+```bash
+npm run build
+```
 
 Currently, two official plugins are available:
 
