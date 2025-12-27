@@ -12,12 +12,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log(`FHECounter contract: `, deployedFHECounter.address);
 
-  const deployedPrivateNotes = await deploy("PrivateNotesFHE", {
+  const deployedPrivateNotes = await deploy("PrivateNotes", {
     from: deployer,
     log: true,
   });
 
-  console.log(`PrivateNotesFHE contract: `, deployedPrivateNotes.address);
+  console.log(`PrivateNotes contract: `, deployedPrivateNotes.address);
 
   const deployedEncryptedFeedback = await deploy("EncryptedFeedback", {
     from: deployer,
@@ -28,4 +28,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 export default func;
 func.id = "deploy_contracts"; // id required to prevent reexecution
-func.tags = ["FHECounter", "PrivateNotesFHE", "EncryptedFeedback"];
+func.tags = ["FHECounter", "PrivateNotes", "EncryptedFeedback"];

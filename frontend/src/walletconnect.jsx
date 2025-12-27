@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 export default function WalletConnect() {
@@ -6,22 +6,8 @@ export default function WalletConnect() {
   const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
 
-  // Group connectors for better UX
-  const groupedConnectors = useMemo(() => {
-    const primary = [];
-    const secondary = [];
-
-    connectors.forEach((connector) => {
-      const primaryNames = ["metaMask", "coinbaseWallet", "rainbow"];
-      if (primaryNames.some((name) => connector.id.includes(name))) {
-        primary.push(connector);
-      } else {
-        secondary.push(connector);
-      }
-    });
-
-    return { primary, secondary };
-  }, [connectors]);
+  // Get MetaMask connector
+  const metaMaskConnector = connectors[0];
 
   const shortAddr = (addr) => addr.slice(0, 6) + "..." + addr.slice(-4);
 
@@ -105,61 +91,22 @@ export default function WalletConnect() {
     <div style={STYLES.container}>
       {!isConnected ? (
         <>
-          <div style={STYLES.title}>🔗 Connect Your Wallet</div>
+          <div style={STYLES.title}>🦊 Connect MetaMask</div>
 
-          {/* Primary Wallets */}
-          {groupedConnectors.primary.length > 0 && (
-            <div style={STYLES.buttonGroup}>
-              {groupedConnectors.primary.map((connector) => (
-                <button
-                  key={connector.uid}
-                  onClick={() => connect({ connector })}
-                  disabled={isPending}
-                  onMouseEnter={(e) => {
-                    Object.assign(e.target.style, STYLES.buttonHover);
-                  }}
-                  onMouseLeave={(e) => {
-                    Object.assign(e.target.style, STYLES.button);
-                  }}
-                  style={STYLES.button}
-                >
-                  {connector.name}
-                  {isPending && "..."}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Secondary Wallets (WalletConnect, etc) */}
-          {groupedConnectors.secondary.length > 0 && (
-            <div style={STYLES.secondaryGroup}>
-              <div style={STYLES.secondaryTitle}>Other Wallets</div>
-              <div style={STYLES.buttonGroup}>
-                {groupedConnectors.secondary.map((connector) => (
-                  <button
-                    key={connector.uid}
-                    onClick={() => connect({ connector })}
-                    disabled={isPending}
-                    onMouseEnter={(e) => {
-                      Object.assign(e.target.style, STYLES.buttonHover);
-                    }}
-                    onMouseLeave={(e) => {
-                      Object.assign(e.target.style, STYLES.button);
-                    }}
-                    style={STYLES.button}
-                  >
-                    {connector.name === "WalletConnect"
-                      ? "📱 " + connector.name
-                      : connector.name}
-                    {isPending && "..."}
-                  </button>
-                ))}
-              </div>
-              <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 10 }}>
-                💡 Can't see your wallet? Select "WalletConnect" to scan QR code
-                with your mobile wallet
-              </p>
-            </div>
+          {metaMaskConnector && (
+            <button
+              onClick={() => connect({ connector: metaMaskConnector })}
+              disabled={isPending}
+              onMouseEnter={(e) => {
+                Object.assign(e.target.style, STYLES.buttonActive);
+              }}
+              onMouseLeave={(e) => {
+                Object.assign(e.target.style, STYLES.button);
+              }}
+              style={STYLES.button}
+            >
+              {isPending ? "Connecting..." : "Connect MetaMask"}
+            </button>
           )}
         </>
       ) : (

@@ -1,19 +1,18 @@
 import {
   initSDK,
   createInstance,
-  SepoliaConfig
-} from "@zama-fhe/relayer-sdk/web";
+  SepoliaConfig,
+} from "@zama-fhe/relayer-sdk";
 
 let fheInstance = null;
 
-export async function initFHE(signer) {
+export async function getFHE() {
   if (!fheInstance) {
     await initSDK();
     fheInstance = await createInstance({
       ...SepoliaConfig,
-      signer
+      provider: window.ethereum,
     });
-    console.log("✅ FHE initialized");
   }
   return fheInstance;
 }

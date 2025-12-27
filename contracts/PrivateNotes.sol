@@ -1,56 +1,77 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import { FHE, euint32, externalEuint32 }
+    from "@fhevm/solidity/lib/FHE.sol";
+import { ZamaEthereumConfig } from "@fhevm/solidity/config/ZamaConfig.sol";
 
-contract PrivateNotesFHE is ZamaEthereumConfig {
-    struct Note {
-        bytes encryptedData;
-        bool active;
-    }
+/**
+ * @title PrivateNotes
+ * @notice Store encrypted text as chunked uint32 arrays (production pattern)
+ * Each text is split into 4-byte chunks, each chunk encrypted as euint32
+ */
+contract PrivateNotes is ZamaEthereumConfig {
+    // Store encrypted text chunks per user
+    mapping(address => euint32[]) private encryptedNotes;
+    
+    // Track note count per user
+    mapping(address => uint256) public noteCount;
+    
+    event NoteStored(address indexed user, uint256 noteLength);
+    event NoteCleared(address indexed user);
 
-    mapping(address => Note[]) private notes;
-
-    event NoteSubmitted(address indexed user, uint256 noteIndex);
-    event NoteDeleted(address indexed user, uint256 noteIndex);
-
-    function submitPrivateNote(
-        bytes calldata encryptedNote
+    /**
+     * @notice Store an encrypted note as euint32[] chunks
+     * @param encryptedChunks Array of encrypted uint32 chunks (4 bytes each)
+     * @param proof ZK proof for decryption
+     */
+    function setNote(
+        externalEuint32[] calldata encryptedChunks,
+        bytes calldata proof
     ) external {
-        notes[msg.sender].push(
-            Note({ encryptedData: encryptedNote, active: true })
-        );
+        require(encryptedChunks.length > 0, "Empty note");
+        require(encryptedChunks.length <= 256, "Note too long (max 1KB)");
 
-        emit NoteSubmitted(msg.sender, notes[msg.sender].length - 1);
-    }
+        // Clear previous note
+        delete encryptedNotes[msg.sender];
 
-    function getMyNotes() external view returns (bytes[] memory, uint256[] memory) {
-        Note[] storage userNotes = notes[msg.sender];
-        uint256 count;
-
-        for (uint256 i = 0; i < userNotes.length; i++) {
-            if (userNotes[i].active) count++;
+        // Decrypt and re-encrypt each chunk with proper access control
+        for (uint256 i = 0; i < encryptedChunks.length; i++) {
+            euint32 chunk = FHE.fromExternal(encryptedChunks[i], proof);
+            
+            // Allow user and contract to decrypt
+            FHE.allow(chunk, msg.sender);
+            FHE.allow(chunk, address(this));
+            
+            encryptedNotes[msg.sender].push(chunk);
         }
 
-        bytes[] memory result = new bytes[](count);
-        uint256[] memory indices = new uint256[](count);
-        uint256 idx;
-
-        for (uint256 i = 0; i < userNotes.length; i++) {
-            if (userNotes[i].active) {
-                result[idx] = userNotes[i].encryptedData;
-                indices[idx] = i;
-                idx++;
-            }
-        }
-
-        return (result, indices);
+        noteCount[msg.sender] = encryptedChunks.length;
+        emit NoteStored(msg.sender, encryptedChunks.length * 4);
     }
 
-    function deleteNote(uint256 index) external {
-        require(index < notes[msg.sender].length, "Invalid index");
-        require(notes[msg.sender][index].active, "Note already deleted");
-        notes[msg.sender][index].active = false;
-        emit NoteDeleted(msg.sender, index);
+    /**
+     * @notice Get the number of chunks in user's note
+     */
+    function getNoteChunkCount() external view returns (uint256) {
+        return noteCount[msg.sender];
+    }
+
+    /**
+     * @notice Grant another address permission to read your note
+     */
+    function allowRead(address reader) external {
+        for (uint256 i = 0; i < encryptedNotes[msg.sender].length; i++) {
+            FHE.allow(encryptedNotes[msg.sender][i], reader);
+        }
+    }
+
+    /**
+     * @notice Clear your note
+     */
+    function clearNote() external {
+        delete encryptedNotes[msg.sender];
+        noteCount[msg.sender] = 0;
+        emit NoteCleared(msg.sender);
     }
 }

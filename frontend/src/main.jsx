@@ -1,10 +1,18 @@
-import "./polyfills";
-import React from "react";
+﻿import React, { Suspense, lazy } from "react";
 import ReactDOM from "react-dom/client";
-import FeedbackApp from "./FeedbackApp.jsx";
+import ErrorBoundary from "./ErrorBoundary";
+import { PageSkeleton } from "./Skeletons";
+import "./index.css";
+import "./polyfills";
+
+const FeedbackApp = lazy(() => import("./FeedbackApp"));
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <FeedbackApp />
+    <ErrorBoundary>
+      <Suspense fallback={<PageSkeleton />}>
+        <FeedbackApp />
+      </Suspense>
+    </ErrorBoundary>
   </React.StrictMode>
 );
