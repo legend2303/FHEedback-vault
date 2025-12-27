@@ -151,7 +151,17 @@ select.text-input option { background: #1e1b4b; color: white; }
 }
 .btn-sm:hover:not(:disabled) { background: rgba(79,70,229,0.2); border-color: var(--border); }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+.btn-deactivate {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: 1px solid #991b1b;
+}
+.btn-deactivate:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  border-color: #7f1d1d;
+}
+
+.text-muted { color: var(--text-secondary); font-size: 14px; }
 .spinner { 
   display: inline-block; 
   width: 16px; 

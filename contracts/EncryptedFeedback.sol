@@ -12,6 +12,7 @@ contract EncryptedFeedback is ZamaEthereumConfig {
 
     struct Question {
         string text;
+        address creator;
         uint256 createdAt;
         bool active;
     }
@@ -37,6 +38,7 @@ contract EncryptedFeedback is ZamaEthereumConfig {
     function createQuestion(string calldata text) external onlyOwner {
         questions[questionCount] = Question({
             text: text,
+            creator: msg.sender,
             createdAt: block.timestamp,
             active: true
         });
@@ -71,5 +73,13 @@ contract EncryptedFeedback is ZamaEthereumConfig {
 
     function getQuestion(uint256 id) external view returns (Question memory) {
         return questions[id];
+    }
+
+    function deactivateQuestion(uint256 questionId) external {
+        require(questionId < questionCount, "Invalid question");
+        require(questions[questionId].creator == msg.sender, "Only creator can deactivate");
+        require(questions[questionId].active, "Already inactive");
+        
+        questions[questionId].active = false;
     }
 }

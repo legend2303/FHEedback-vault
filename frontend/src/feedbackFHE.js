@@ -27,6 +27,12 @@ export async function submitEncryptedFeedback(
     signer
   );
 
+  // Friendly pre-check to avoid revert when already submitted
+  const alreadySubmitted = await contract.hasSubmitted(questionId);
+  if (alreadySubmitted) {
+    throw new Error("You already submitted feedback for this question.");
+  }
+
   // Build encrypted payload bound to contract + user
   const input = await fhevm.createEncryptedInput(CONTRACT_ADDRESS, address);
   input.add32(Number(score));
@@ -114,9 +120,21 @@ export async function listQuestions() {
     out.push({
       id: i,
       text: q.text,
+      creator: q.creator,
       active: q.active,
       createdAt: Number(q.createdAt) * 1000,
     });
   }
   return out;
+}
+
+export async function deactivateQuestion(questionId, signer) {
+  if (!signer) {
+    throw new Error("Wallet not connected");
+  }
+
+  const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+  const tx = await contract.deactivateQuestion(questionId);
+  await tx.wait();
+  return tx.hash;
 }

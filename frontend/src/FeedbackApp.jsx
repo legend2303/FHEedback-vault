@@ -4,6 +4,7 @@ import {
   submitEncryptedFeedback,
   createQuestion,
   listQuestions,
+  deactivateQuestion,
 } from "./feedbackFHE";
 import "./FeedbackApp.css";
 
@@ -19,6 +20,7 @@ export default function FeedbackApp() {
   const [status, setStatus] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [lastTxHash, setLastTxHash] = useState(null);
+  const [deactivatingId, setDeactivatingId] = useState(null);
 
   useEffect(() => {
     if (window.ethereum) {
@@ -119,6 +121,25 @@ export default function FeedbackApp() {
       setStatus({ type: 'error', message: `Error loading questions: ${err?.message || String(err)}` });
     } finally {
       setLoadingQuestions(false);
+    }
+  }
+
+  async function handleDeactivate(questionId) {
+    if (!wallet) {
+      setStatus({ type: 'error', message: 'Please connect wallet first' });
+      return;
+    }
+    try {
+      setDeactivatingId(questionId);
+      setStatus({ type: 'info', message: 'Deactivating question...' });
+      const txHash = await deactivateQuestion(questionId, wallet.signer);
+      setLastTxHash(txHash);
+      setStatus({ type: 'success', message: 'Question deactivated!' });
+      await loadQuestions();
+    } catch (err) {
+      setStatus({ type: 'error', message: err.message });
+    } finally {
+      setDeactivatingId(null);
     }
   }
 
@@ -235,21 +256,42 @@ export default function FeedbackApp() {
                       <th>Question</th>
                       <th>Created</th>
                       <th>Status</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {questions.map((q) => (
-                      <tr key={q.id}>
-                        <td>#{q.id + 1}</td>
-                        <td>{q.text}</td>
-                        <td>{new Date(q.createdAt).toLocaleDateString()}</td>
-                        <td>
-                          <span className={`badge ${q.active ? 'badge-active' : 'badge-inactive'}`}>
-                            {q.active ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {questions.map((q) => {
+                      const isCreator = wallet && q.creator?.toLowerCase() === wallet.address.toLowerCase();
+                      return (
+                        <tr key={q.id}>
+                          <td>#{q.id + 1}</td>
+                          <td>{q.text}</td>
+                          <td>{new Date(q.createdAt).toLocaleDateString()}</td>
+                          <td>
+                            <span className={`badge ${q.active ? 'badge-active' : 'badge-inactive'}`}>
+                              {q.active ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                          <td>
+                            {isCreator && q.active && (
+                              <button
+                                onClick={() => handleDeactivate(q.id)}
+                                disabled={deactivatingId === q.id}
+                                className="btn-deactivate btn-sm"
+                              >
+                                {deactivatingId === q.id ? <><span className="spinner"></span> Deactivating...</> : "Deactivate"}
+                              </button>
+                            )}
+                            {isCreator && !q.active && (
+                              <span className="text-muted">—</span>
+                            )}
+                            {!isCreator && (
+                              <span className="text-muted">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
