@@ -3,7 +3,6 @@ import { connectWallet } from "./wallet";
 import {
   submitEncryptedFeedback,
   createQuestion,
-  decryptMyFeedback,
   listQuestions,
 } from "./feedbackFHE";
 import "./FeedbackApp.css";
@@ -14,14 +13,12 @@ export default function FeedbackApp() {
   const [selectedQuestionId, setSelectedQuestionId] = useState(0);
   const [score, setScore] = useState(50);
   const [newQuestionText, setNewQuestionText] = useState("");
-  const [decryptQuestionId, setDecryptQuestionId] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [creatingQuestion, setCreatingQuestion] = useState(false);
-  const [decrypting, setDecrypting] = useState(false);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [status, setStatus] = useState(null);
   const [questions, setQuestions] = useState([]);
-  const [decryptedScore, setDecryptedScore] = useState(null);
+  const [lastTxHash, setLastTxHash] = useState(null);
 
   useEffect(() => {
     if (window.ethereum) {
@@ -70,7 +67,8 @@ export default function FeedbackApp() {
       setStatus({ type: 'info', message: 'Encrypting and submitting feedback...' });
       const numericScore = Number(score); // Ensure score is a number
       const txHash = await submitEncryptedFeedback(selectedQuestionId, numericScore, wallet.signer, wallet.address);
-      setStatus({ type: 'success', message: `Feedback submitted to question #${selectedQuestionId}! Tx: ${txHash.slice(0, 10)}...` });
+      setLastTxHash(txHash);
+      setStatus({ type: 'success', message: `Feedback submitted to question #${selectedQuestionId + 1}!` });
       setScore(50);
     } catch (err) {
       setStatus({ type: 'error', message: err.message });
@@ -93,7 +91,8 @@ export default function FeedbackApp() {
       setCreatingQuestion(true);
       setStatus({ type: 'info', message: 'Creating question...' });
       const txHash = await createQuestion(newQuestionText, wallet.signer);
-      setStatus({ type: 'success', message: `Question created! Tx: ${txHash.slice(0, 10)}...` });
+      setLastTxHash(txHash);
+      setStatus({ type: 'success', message: 'Question created!' });
       setNewQuestionText("");
       await loadQuestions();
     } catch (err) {
@@ -103,25 +102,6 @@ export default function FeedbackApp() {
     }
   }
 
-  async function readMine() {
-    if (!wallet) {
-      setStatus({ type: 'error', message: 'Please connect wallet first' });
-      return;
-    }
-    setStatus(null);
-    try {
-      setDecrypting(true);
-      setDecryptedScore(null);
-      setStatus({ type: 'info', message: 'Decrypting your feedback...' });
-      const score = await decryptMyFeedback(decryptQuestionId, wallet.signer, wallet.address);
-      setDecryptedScore(score);
-      setStatus({ type: 'success', message: `Successfully decrypted your feedback: ${score}` });
-    } catch (err) {
-      setStatus({ type: 'error', message: err.message });
-    } finally {
-      setDecrypting(false);
-    }
-  }
 
   async function loadQuestions() {
     try {
@@ -138,11 +118,19 @@ export default function FeedbackApp() {
 
   const activeQuestions = questions.filter(q => q.active);
 
+  const networkName = wallet?.chainId === 11155111
+    ? 'Sepolia'
+    : wallet?.chainId === 1
+      ? 'Ethereum Mainnet'
+      : wallet?.chainId
+        ? `Chain ${wallet.chainId}`
+        : 'Unknown';
+
   return (
-    <div className="app-container">
+    <div className="feedback-app">
       <header className="app-header">
         <h1>🔒 Encrypted Feedback System</h1>
-        <p className="subtitle">Powered by Zama FHEVM on Sepolia</p>
+        <p className="subtitle">Powered by Zama FHEVM on {networkName}</p>
       </header>
       <div className="card">
         <h2>Wallet Connection</h2>
@@ -156,20 +144,25 @@ export default function FeedbackApp() {
         ) : (
           <div className="wallet-info">
             <p>✅ <strong>Connected:</strong> {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}</p>
-            <p><strong>Chain ID:</strong> {wallet.chainId}</p>
+            <p><strong>Network:</strong> {networkName}</p>
           </div>
         )}
       </div>
       {status && (
         <div className={`status-message status-${status.type}`}>
-          {status.message}
+          <span>{status.message}</span>
+          {lastTxHash && status.type === 'success' && (
+            <span className="tx-link">
+              {" "}| <a href={`https://sepolia.etherscan.io/tx/${lastTxHash}`} target="_blank" rel="noreferrer">View on Etherscan</a>
+            </span>
+          )}
         </div>
       )}
       {wallet && (
         <>
           <div className="card">
             <h2>📝 Submit Encrypted Feedback</h2>
-            <div className="form-group">
+            <div className="input-group">
               <label htmlFor="question-select">Select Question:</label>
               <select id="question-select" className="text-input" value={selectedQuestionId} onChange={(e) => setSelectedQuestionId(Number(e.target.value))} disabled={activeQuestions.length === 0}>
                 {activeQuestions.length === 0 ? (
@@ -183,9 +176,9 @@ export default function FeedbackApp() {
                 )}
               </select>
             </div>
-            <div className="form-group">
+            <div className="input-group">
               <label htmlFor="score-slider">
-                Score: <span className="score-value">{score}</span>
+                Score: <span className="score-display">{score}</span>
               </label>
               <input id="score-slider" type="range" min="0" max="100" value={score} onChange={(e) => setScore(Number(e.target.value))} className="score-slider" />
               <div className="slider-labels">
@@ -200,32 +193,18 @@ export default function FeedbackApp() {
           </div>
           <div className="card">
             <h2>➕ Create New Question</h2>
-            <div className="form-group">
+            <div className="input-group">
               <input type="text" placeholder="Enter your question..." value={newQuestionText} onChange={(e) => setNewQuestionText(e.target.value)} className="text-input" />
             </div>
             <button onClick={createQ} disabled={creatingQuestion || !newQuestionText.trim()} className="btn-secondary">
               {creatingQuestion ? <><span className="spinner"></span> Creating...</> : "Create Question"}
             </button>
           </div>
-          <div className="card">
-            <h2>🔓 Decrypt My Feedback</h2>
-            <div className="form-group">
-              <label htmlFor="decrypt-question">Question ID:</label>
-              <input id="decrypt-question" type="number" min="0" value={decryptQuestionId} onChange={(e) => setDecryptQuestionId(Number(e.target.value))} className="text-input" />
-            </div>
-            <button onClick={readMine} disabled={decrypting} className="btn-accent">
-              {decrypting ? <><span className="spinner"></span> Decrypting...</> : "Decrypt My Score"}
-            </button>
-            {decryptedScore !== null && (
-              <div className="decrypt-result">
-                <strong>Your Score:</strong> {decryptedScore}/100
-              </div>
-            )}
-          </div>
+          {/* Decrypt functionality temporarily disabled */}
           <div className="card">
             <div className="card-header">
               <h2>📋 All Questions</h2>
-              <button onClick={loadQuestions} disabled={loadingQuestions} className="btn-secondary small">
+              <button onClick={loadQuestions} disabled={loadingQuestions} className="btn-secondary btn-sm">
                 {loadingQuestions ? '⟳' : '🔄'} Refresh
               </button>
             </div>
@@ -239,7 +218,7 @@ export default function FeedbackApp() {
                 <p>No questions yet. Create the first one!</p>
               </div>
             ) : (
-              <div className="table-container">
+              <div className="table-wrapper">
                 <table className="questions-table">
                   <thead>
                     <tr>
@@ -252,7 +231,7 @@ export default function FeedbackApp() {
                   <tbody>
                     {questions.map((q) => (
                       <tr key={q.id}>
-                        <td>#{q.id}</td>
+                        <td>#{q.id + 1}</td>
                         <td>{q.text}</td>
                         <td>{new Date(q.createdAt).toLocaleDateString()}</td>
                         <td>

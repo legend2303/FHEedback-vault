@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { getFHE } from "./fhe";
-import EncryptedFeedbackDeployment from "../../deployments/sepolia/EncryptedFeedback.json";
+import EncryptedFeedbackDeployment from "./deployments/sepolia/EncryptedFeedback.json";
 
 const CONTRACT_ADDRESS = EncryptedFeedbackDeployment.address;
 const ABI = EncryptedFeedbackDeployment.abi;
@@ -27,17 +27,15 @@ export async function submitEncryptedFeedback(
     signer
   );
 
-  // ✅ CORRECT for browser SDK 0.3.0-8
-  const encrypted = await fhevm.encrypt32(
-    Number(score),
-    CONTRACT_ADDRESS,
-    address
-  );
+  // Build encrypted payload bound to contract + user
+  const input = await fhevm.createEncryptedInput(CONTRACT_ADDRESS, address);
+  input.add32(Number(score));
+  const encrypted = await input.encrypt();
 
   const tx = await contract.submitFeedback(
     questionId,
-    encrypted.handle,
-    encrypted.proof
+    encrypted.handles[0],
+    encrypted.inputProof
   );
 
   await tx.wait();
@@ -58,6 +56,9 @@ export async function decryptMyFeedback(questionId, signer, address) {
 
   const handle = await contract.getMyFeedback(questionId);
   const handleHex = typeof handle === "string" ? handle : ethers.hexlify(handle);
+  if (handleHex === ethers.ZeroHash) {
+    throw new Error("No feedback found for this question.");
+  }
 
   const { publicKey, privateKey } = fhe.generateKeypair();
   const start = Math.floor(Date.now() / 1000);
