@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { getFHE } from "./fhe";
-import EncryptedFeedbackDeployment from "./deployments/sepolia/EncryptedFeedback.json";
+import EncryptedFeedbackDeployment from "../../deployments/sepolia/EncryptedFeedback.json";
 
 const CONTRACT_ADDRESS = EncryptedFeedbackDeployment.address;
 const ABI = EncryptedFeedbackDeployment.abi;
