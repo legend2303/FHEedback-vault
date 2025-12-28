@@ -27,7 +27,7 @@ contract EncryptedFeedback is ZamaEthereumConfig {
     event FeedbackSubmitted(uint256 indexed id, address indexed user);
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner");
+        require(msg.sender == owner, "Only owner can call this");
         _;
     }
 
@@ -53,7 +53,7 @@ contract EncryptedFeedback is ZamaEthereumConfig {
         bytes calldata proof
     ) external {
         require(questionId < questionCount, "Invalid question");
-        require(questions[questionId].active, "Inactive");
+        require(questions[questionId].active, "Question inactive");
         require(!feedbacks[questionId][msg.sender].submitted, "Already submitted");
 
         euint32 score = FHE.fromExternal(encryptedScore, proof);

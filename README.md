@@ -75,14 +75,26 @@ For detailed instructions see:
 
 ```
 fhevm-hardhat-template/
-├── contracts/           # Smart contract source files
-│   └── FHECounter.sol   # Example FHE counter contract
-├── deploy/              # Deployment scripts
-├── tasks/               # Hardhat custom tasks
-├── test/                # Test files
-├── hardhat.config.ts    # Hardhat configuration
-└── package.json         # Dependencies and scripts
+├── contracts/            # Smart contract source files
+│   ├── EncryptedFeedback.sol   # FHE-encrypted feedback collection
+│   └── PrivateNotes.sol        # Encrypted note storage pattern
+├── deploy/               # Deployment scripts
+├── tasks/                # Hardhat custom tasks
+├── test/                 # Test files
+├── hardhat.config.ts     # Hardhat configuration
+└── package.json          # Dependencies and scripts
 ```
+
+## 🔐 FHE Design Rationale
+
+This dApp uses **Zama FHEVM** to encrypt user feedback on-chain:
+
+- **Individual scores are never revealed in plaintext** — they remain encrypted in contract storage
+- **Only the submitting user can decrypt their own feedback** via EIP-712 signed re-encryption keys through the Zama Relayer SDK
+- **Question creators can deactivate surveys** without ever accessing raw scores
+- **Privacy-preserving feedback collection** — perfect for sensitive surveys, research, and anonymous polling
+
+The encrypted approach ensures feedback integrity while maintaining user privacy at the protocol level.
 
 ## 📜 Available Scripts
 
