@@ -142,3 +142,8 @@ To build for production:
 ```bash
 npm run build
 ```
+Changes going to added are :
+1. Analytics Button 
+2. Expandable Analytics Panel
+3. Decrypt Results Button
+4. Decrypted Results Show:
